@@ -131,11 +131,13 @@ export class MnistData {
    *   labels: The one-hot encoded labels tensor, of shape
    *     `[numTestExamples, 10]`.
    */
-  getTestData(numExamples) {
-    // let xs = tf.tensor4d(
-    //   this.testImages,
-    //   [this.testImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
-    let xs = this.testImages
+  getTestData(numExamples, status) {
+    let xs = tf.tensor4d(
+      this.testImages,
+      [this.testImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
+    if (status) {
+      xs = this.testImages
+    }
     let labels = tf.tensor2d(
       this.testLabels, [this.testLabels.length / NUM_CLASSES, NUM_CLASSES]);
 

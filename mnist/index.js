@@ -266,9 +266,12 @@ function createModel() {
 }
 
 let data;
-async function load() {
+async function load(status) {
   data = new MnistData();
   await data.load();
+  if (!status) {
+    return
+  }
   await data.loadImg();
 }
 
@@ -288,7 +291,7 @@ ui.setTrainButtonCallback(async () => {
 
 ui.setTestCallback(async () => {
   ui.logStatus('Loading test data...');
-  await load();
+  await load(true);
 
   ui.logStatus('Loading model...');
   const model = await tf.loadLayersModel('http://localhost:8081/model/model.json');
@@ -296,7 +299,7 @@ ui.setTestCallback(async () => {
   ui.logStatus('Starting model training...');
   tf.tidy(() => {
     const testExamples = 1;
-    const examples = data.getTestData(testExamples);
+    const examples = data.getTestData(testExamples, true);
     const output = model.predict(examples.xs);
     const axis = 1;
     const labels = Array.from(examples.labels.argMax(axis).dataSync());
