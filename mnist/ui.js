@@ -127,3 +127,11 @@ export function setTrainButtonCallback(callback) {
     callback();
   });
 }
+
+export function setTestCallback(callback) {
+  const btn = document.getElementById('test');
+  btn.addEventListener('click', () => {
+    // btn.setAttribute('disabled', true);
+    callback();
+  });
+}

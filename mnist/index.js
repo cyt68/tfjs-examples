@@ -269,6 +269,7 @@ let data;
 async function load() {
   data = new MnistData();
   await data.load();
+  await data.loadImg();
 }
 
 // This is our main function. It loads the MNIST data, trains the model, and
@@ -283,4 +284,24 @@ ui.setTrainButtonCallback(async () => {
 
   ui.logStatus('Starting model training...');
   await train(model, () => showPredictions(model));
+});
+
+ui.setTestCallback(async () => {
+  ui.logStatus('Loading test data...');
+  await load();
+
+  ui.logStatus('Loading model...');
+  const model = await tf.loadLayersModel('http://localhost:8081/model/model.json');
+
+  ui.logStatus('Starting model training...');
+  tf.tidy(() => {
+    const testExamples = 1;
+    const examples = data.getTestData(testExamples);
+    const output = model.predict(examples.xs);
+    const axis = 1;
+    const labels = Array.from(examples.labels.argMax(axis).dataSync());
+    const predictions = Array.from(output.argMax(axis).dataSync());
+
+    ui.showTestResults(examples, predictions, labels);
+  });
 });

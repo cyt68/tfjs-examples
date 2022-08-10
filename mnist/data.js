@@ -26,8 +26,10 @@ const NUM_DATASET_ELEMENTS = 65000;
 const NUM_TRAIN_ELEMENTS = 55000;
 const NUM_TEST_ELEMENTS = NUM_DATASET_ELEMENTS - NUM_TRAIN_ELEMENTS;
 
+// const MNIST_IMAGES_SPRITE_PATH =
+//   'https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png';
 const MNIST_IMAGES_SPRITE_PATH =
-  'https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png';
+  'http://localhost:8081/img/mnist_images.png';
 const MNIST_LABELS_PATH =
   'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8';
 
@@ -93,6 +95,12 @@ export class MnistData {
       this.datasetLabels.slice(0, NUM_CLASSES * NUM_TRAIN_ELEMENTS);
     this.testLabels =
       this.datasetLabels.slice(NUM_CLASSES * NUM_TRAIN_ELEMENTS);
+
+
+    const images = tf.tensor4d(this.testImages, [
+      10000, 28, 28, 1
+    ]);
+    images
   }
 
   /**
@@ -124,9 +132,10 @@ export class MnistData {
    *     `[numTestExamples, 10]`.
    */
   getTestData(numExamples) {
-    let xs = tf.tensor4d(
-      this.testImages,
-      [this.testImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
+    // let xs = tf.tensor4d(
+    //   this.testImages,
+    //   [this.testImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
+    let xs = this.testImages
     let labels = tf.tensor2d(
       this.testLabels, [this.testLabels.length / NUM_CLASSES, NUM_CLASSES]);
 
@@ -135,5 +144,58 @@ export class MnistData {
       labels = labels.slice([0, 0], [numExamples, NUM_CLASSES]);
     }
     return { xs, labels };
+  }
+
+  async loadImg() {
+    // Make a request for the MNIST sprited image.
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const imgRequest = new Promise((resolve, reject) => {
+      img.crossOrigin = '';
+      img.onload = () => {
+        img.width = img.naturalWidth;
+        img.height = img.naturalHeight;
+
+        const datasetBytesBuffer =
+          new ArrayBuffer(img.width * img.height * 4);
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        const datasetBytesView = new Float32Array(
+          datasetBytesBuffer);
+        ctx.drawImage(
+          img, 0, 0, img.width, img.height, 0, 0, img.width,
+          img.height);
+
+        const div = document.getElementById('png');
+        div.appendChild(canvas);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        for (let j = 0; j < imageData.data.length / 4; j++) {
+          // All channels hold an equal value since the image is grayscale, so
+          // just read the red channel.
+          datasetBytesView[j] = imageData.data[j * 4] / 255;
+        }
+        const a1 = new Float32Array(datasetBytesBuffer)
+        const aaa = tf.tensor4d(a1, [
+          1, img.height, img.width, 1
+        ]);
+
+        this.testImages = aaa.resizeBilinear([IMAGE_H, IMAGE_W])
+
+        // this.testImages = new Float32Array(datasetBytesBuffer)
+
+        const canvas1 = document.createElement('canvas');
+        const ctx1 = canvas1.getContext('2d');
+        ctx1.putImageData(imageData, 0, 0);
+        const div1 = document.getElementById('png-test');
+        div1.appendChild(canvas1);
+        resolve();
+      };
+      img.src = 'http://localhost:8081/img/65998.png';
+    });
   }
 }
