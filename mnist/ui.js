@@ -64,15 +64,15 @@ const accuracyLabelElement = document.getElementById('accuracy-label');
 const lossValues = [[], []];
 export function plotLoss(batch, loss, set) {
   const series = set === 'train' ? 0 : 1;
-  lossValues[series].push({x: batch, y: loss});
+  lossValues[series].push({ x: batch, y: loss });
   const lossContainer = document.getElementById('loss-canvas');
   tfvis.render.linechart(
-      lossContainer, {values: lossValues, series: ['train', 'validation']}, {
-        xLabel: 'Batch #',
-        yLabel: 'Loss',
-        width: 400,
-        height: 300,
-      });
+    lossContainer, { values: lossValues, series: ['train', 'validation'] }, {
+    xLabel: 'Batch #',
+    yLabel: 'Loss',
+    width: 400,
+    height: 300,
+  });
   lossLabelElement.innerText = `last loss: ${loss.toFixed(3)}`;
 }
 
@@ -80,17 +80,17 @@ const accuracyValues = [[], []];
 export function plotAccuracy(batch, accuracy, set) {
   const accuracyContainer = document.getElementById('accuracy-canvas');
   const series = set === 'train' ? 0 : 1;
-  accuracyValues[series].push({x: batch, y: accuracy});
+  accuracyValues[series].push({ x: batch, y: accuracy });
   tfvis.render.linechart(
-      accuracyContainer,
-      {values: accuracyValues, series: ['train', 'validation']}, {
-        xLabel: 'Batch #',
-        yLabel: 'Accuracy',
-        width: 400,
-        height: 300,
-      });
+    accuracyContainer,
+    { values: accuracyValues, series: ['train', 'validation'] }, {
+    xLabel: 'Batch #',
+    yLabel: 'Accuracy',
+    width: 400,
+    height: 300,
+  });
   accuracyLabelElement.innerText =
-      `last accuracy: ${(accuracy * 100).toFixed(1)}%`;
+    `last accuracy: ${(accuracy * 100).toFixed(1)}%`;
 }
 
 export function draw(image, canvas) {

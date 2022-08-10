@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs';
 // This is a helper class for loading and managing MNIST data specifically.
 // It is a useful example of how you could create your own data manager class
 // for arbitrary data though. It's worth a look :)
-import {IMAGE_H, IMAGE_W, MnistData} from './data';
+import { IMAGE_H, IMAGE_W, MnistData } from './data';
 
 // This is a helper class for drawing loss graphs and MNIST images to the
 // window. For the purposes of understanding the machine learning bits, you can
@@ -54,23 +54,23 @@ function createConvModel() {
   // After the first layer we include a MaxPooling layer. This acts as a sort of
   // downsampling using max values in a region instead of averaging.
   // https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
-  model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
+  model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
 
   // Our third layer is another convolution, this time with 32 filters.
-  model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
+  model.add(tf.layers.conv2d({ kernelSize: 3, filters: 32, activation: 'relu' }));
 
   // Max pooling again.
-  model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
+  model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
 
   // Add another conv2d layer.
-  model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
+  model.add(tf.layers.conv2d({ kernelSize: 3, filters: 32, activation: 'relu' }));
 
   // Now we flatten the output from the 2D filters into a 1D vector to prepare
   // it for input into our last layer. This is common practice when feeding
   // higher dimensional data to a final classification output layer.
   model.add(tf.layers.flatten({}));
 
-  model.add(tf.layers.dense({units: 64, activation: 'relu'}));
+  model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
 
   // Our last layer is a dense layer which has 10 output units, one for each
   // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
@@ -79,7 +79,7 @@ function createConvModel() {
   // We use the softmax function as the activation for the output layer as it
   // creates a probability distribution over our 10 classes so their output
   // values sum to 1.
-  model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
+  model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
 
   return model;
 }
@@ -98,9 +98,9 @@ function createConvModel() {
  */
 function createDenseModel() {
   const model = tf.sequential();
-  model.add(tf.layers.flatten({inputShape: [IMAGE_H, IMAGE_W, 1]}));
-  model.add(tf.layers.dense({units: 42, activation: 'relu'}));
-  model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
+  model.add(tf.layers.flatten({ inputShape: [IMAGE_H, IMAGE_W, 1] }));
+  model.add(tf.layers.dense({ units: 42, activation: 'relu' }));
+  model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
   return model;
 }
 
@@ -172,8 +172,8 @@ async function train(model, onIteration) {
   const testData = data.getTestData();
 
   const totalNumBatches =
-      Math.ceil(trainData.xs.shape[0] * (1 - validationSplit) / batchSize) *
-      trainEpochs;
+    Math.ceil(trainData.xs.shape[0] * (1 - validationSplit) / batchSize) *
+    trainEpochs;
 
   // During the long-running fit() call for model training, we include
   // callbacks, so that we can plot the loss and accuracy values in the page
@@ -187,9 +187,9 @@ async function train(model, onIteration) {
       onBatchEnd: async (batch, logs) => {
         trainBatchCount++;
         ui.logStatus(
-            `Training... (` +
-            `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` +
-            ` complete). To stop training, refresh or close page.`);
+          `Training... (` +
+          `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` +
+          ` complete). To stop training, refresh or close page.`);
         ui.plotLoss(trainBatchCount, logs.loss, 'train');
         ui.plotAccuracy(trainBatchCount, logs.acc, 'train');
         if (onIteration && batch % 10 === 0) {
@@ -213,8 +213,8 @@ async function train(model, onIteration) {
   const testAccPercent = testResult[1].dataSync()[0] * 100;
   const finalValAccPercent = valAcc * 100;
   ui.logStatus(
-      `Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
-      `Final test accuracy: ${testAccPercent.toFixed(1)}%`);
+    `Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
+    `Final test accuracy: ${testAccPercent.toFixed(1)}%`);
 }
 
 /**
