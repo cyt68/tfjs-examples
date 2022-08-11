@@ -21,6 +21,9 @@ const fs = require('fs');
 const https = require('https');
 const util = require('util');
 const zlib = require('zlib');
+const path = require('path');
+const char_set = require('./char_set.json');
+const { createCanvas, loadImage } = require('canvas')
 
 const readFile = util.promisify(fs.readFile);
 
@@ -96,6 +99,72 @@ async function loadImages(filename) {
   return images;
 }
 
+function notDSStore(name) {
+  return name !== '.DS_Store'
+}
+
+async function loadPngs(url) {
+  const images = [];
+  const sizes = [];
+  const labels = [];
+  const files = fs.readdirSync(url, { withFileTypes: true });
+  for (let i = 0; i < files.length; i++) {
+    const el = files[i];
+    if (el.isDirectory() && notDSStore(el.name)) {
+      let files = fs.readdirSync(`${url}/${el.name}`);
+      files = files.filter(el => notDSStore(el))
+      files.sort((a, b) => {
+        return a.split('.')[0] - b.split('.')[0]
+      })
+      for (let index = 0; index < files.length; index++) {
+        const name = files[index];
+        const img = await loadImage(`${url}/${el.name}/${name}`);
+        const canvas = createCanvas(img.width, img.height)
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, img.width, img.height);
+        // fs.writeFileSync(path.join(__dirname, `/111/${name}.png`), canvas.toBuffer())
+        const datasetBytesBuffer = new ArrayBuffer(img.width * img.height * 4);
+        const datasetBytesView = new Float32Array(datasetBytesBuffer);
+        for (let j = 0; j < imageData.data.length / 4; j++) {
+          // All channels hold an equal value since the image is grayscale, so
+          // just read the red channel.
+          datasetBytesView[j] = imageData.data[j * 4] / 255;
+        }
+        const data = resizePng(new Float32Array(datasetBytesBuffer), img, name)
+        images.push(data)
+        sizes.push([img.height, img.width])
+
+        const array = new Int32Array(1);
+        array[0] = parseInt(el.name)
+        labels.push(array)
+      }
+    }
+  }
+  return { images, labels, sizes }
+}
+
+function resizePng(data, img, name) {
+  const tmp = tf.tensor4d(data, [
+    1, img.height, img.width, 1
+  ]);
+
+  const res = tmp.resizeBilinear([IMAGE_HEIGHT, IMAGE_WIDTH]).bufferSync().values
+  const canvas = createCanvas(IMAGE_HEIGHT, IMAGE_WIDTH)
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+  for (let i = 0; i < IMAGE_HEIGHT * IMAGE_WIDTH; ++i) {
+    const j = i * 4;
+    imageData.data[j + 0] = res[i] * 255;
+    imageData.data[j + 1] = res[i] * 255;
+    imageData.data[j + 2] = res[i] * 255;
+    imageData.data[j + 3] = 255;
+  }
+  ctx.putImageData(imageData, 0, 0);
+  fs.writeFileSync(path.join(__dirname, `/111/${name}`), canvas.toBuffer())
+  return res
+}
+
 async function loadLabels(filename) {
   const buffer = await fetchOnceAndSaveToDiskWithBuffer(filename);
 
@@ -131,9 +200,13 @@ class MnistDataset {
 
   /** Loads training and test data. */
   async loadData() {
+    // this.dataset = await Promise.all([
+    //   loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE),
+    //   loadImages(TEST_IMAGES_FILE), loadLabels(TEST_LABELS_FILE)
+    // ]);
     this.dataset = await Promise.all([
-      loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE),
-      loadImages(TEST_IMAGES_FILE), loadLabels(TEST_LABELS_FILE)
+      (await loadPngs(path.join(__dirname, `/img/train1`))).images, (await loadPngs(path.join(__dirname, `/img/train1`))).labels,
+      (await loadPngs(path.join(__dirname, `/img/test1`))).images, (await loadPngs(path.join(__dirname, `/img/test1`))).labels, (await loadPngs(path.join(__dirname, `/img/train1`))).sizes,
     ]);
     this.trainSize = this.dataset[0].length;
     this.testSize = this.dataset[2].length;
@@ -159,9 +232,9 @@ class MnistDataset {
     }
     const size = this.dataset[imagesIndex].length;
     tf.util.assert(
-        this.dataset[labelsIndex].length === size,
-        `Mismatch in the number of images (${size}) and ` +
-            `the number of labels (${this.dataset[labelsIndex].length})`);
+      this.dataset[labelsIndex].length === size,
+      `Mismatch in the number of images (${size}) and ` +
+      `the number of labels (${this.dataset[labelsIndex].length})`);
 
     // Only create one big array to hold batch of images.
     const imagesShape = [size, IMAGE_HEIGHT, IMAGE_WIDTH, 1];

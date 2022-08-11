@@ -294,7 +294,7 @@ ui.setTestCallback(async () => {
   await load(true);
 
   ui.logStatus('Loading model...');
-  const model = await tf.loadLayersModel('http://localhost:8081/model/model.json');
+  const model = await tf.loadLayersModel('http://localhost:8081/trainedModel/model.json');
 
   ui.logStatus('Starting model training...');
   tf.tidy(() => {

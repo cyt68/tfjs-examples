@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^3.14.0",
-    "argparse": "^2.0.1"
+    "argparse": "^2.0.1",
+    "canvas": "^2.9.3"
   },
   "scripts": {
     "train": "node main.js"

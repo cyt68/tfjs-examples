@@ -132,11 +132,13 @@ export class MnistData {
    *     `[numTestExamples, 10]`.
    */
   getTestData(numExamples, status) {
-    let xs = tf.tensor4d(
-      this.testImages,
-      [this.testImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
+    let xs;
     if (status) {
-      xs = this.testImages
+      xs = this.testImages;
+    } else {
+      xs = tf.tensor4d(
+        this.testImages,
+        [this.testImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
     }
     let labels = tf.tensor2d(
       this.testLabels, [this.testLabels.length / NUM_CLASSES, NUM_CLASSES]);
