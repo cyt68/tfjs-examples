@@ -16,6 +16,7 @@
  */
 
 import * as tfvis from '@tensorflow/tfjs-vis';
+import char_set from './char_set.json';
 
 const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');
@@ -50,7 +51,7 @@ export function showTestResults(batch, predictions, labels) {
     const correct = prediction === label;
 
     pred.className = `pred ${(correct ? 'pred-correct' : 'pred-incorrect')}`;
-    pred.innerText = `pred: ${prediction}`;
+    pred.innerText = `pred: ${char_set[prediction]}`;
 
     div.appendChild(pred);
     div.appendChild(canvas);

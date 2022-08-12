@@ -103,7 +103,22 @@ function notDSStore(name) {
   return name !== '.DS_Store'
 }
 
+function emptyDir(path) {
+  const files = fs.readdirSync(path);
+  files.forEach(file => {
+    const filePath = `${path}/${file}`;
+    const stats = fs.statSync(filePath);
+    if (stats.isDirectory()) {
+      emptyDir(filePath);
+    } else {
+      fs.unlinkSync(filePath);
+      console.log(`删除${file}文件成功`);
+    }
+  });
+}
+
 async function loadPngs(url) {
+  emptyDir(path.join(__dirname, `/111`))
   const images = [];
   const sizes = [];
   const labels = [];
@@ -131,7 +146,7 @@ async function loadPngs(url) {
           // just read the red channel.
           datasetBytesView[j] = imageData.data[j * 4] / 255;
         }
-        const data = resizePng(new Float32Array(datasetBytesBuffer), img, name)
+        const data = resizePng(new Float32Array(datasetBytesBuffer), img, name, parseInt(el.name))
         images.push(data)
         sizes.push([img.height, img.width])
 
@@ -144,9 +159,40 @@ async function loadPngs(url) {
   return { images, labels, sizes }
 }
 
-function resizePng(data, img, name) {
+function fillPicture(dataBuffer, img) {
+  const imgHeight = img.height;
+  const imgWidth = img.width;
+  if (imgHeight < IMAGE_HEIGHT) {
+    const addNum = imgWidth * (IMAGE_HEIGHT - imgHeight);
+    const halfAddNum = Math.ceil(addNum / 2)
+    const imgData = new Float32Array(IMAGE_HEIGHT * imgWidth);
+    for (let index = 0; index < halfAddNum; index++) {
+      imgData[index] = 1
+    }
+    for (let index = halfAddNum; index < IMAGE_HEIGHT * imgWidth + halfAddNum; index++) {
+      imgData[index] = dataBuffer[index - halfAddNum]
+    }
+    for (let index = IMAGE_HEIGHT * imgWidth + halfAddNum; index < IMAGE_HEIGHT * imgWidth + addNum; index++) {
+      imgData[index] = 1
+    }
+    return {
+      data: imgData,
+      height: IMAGE_HEIGHT,
+      width: imgWidth
+    }
+  }
+  return {
+    data: dataBuffer,
+    height: imgHeight,
+    width: imgWidth
+  };
+}
+
+
+function resizePng(dataBuffer, img, name, elName) {
+  const { data, height, width } = fillPicture(dataBuffer, img)
   const tmp = tf.tensor4d(data, [
-    1, img.height, img.width, 1
+    1, height, width, 1
   ]);
 
   const res = tmp.resizeBilinear([IMAGE_HEIGHT, IMAGE_WIDTH]).bufferSync().values
@@ -161,7 +207,9 @@ function resizePng(data, img, name) {
     imageData.data[j + 3] = 255;
   }
   ctx.putImageData(imageData, 0, 0);
-  fs.writeFileSync(path.join(__dirname, `/111/${name}`), canvas.toBuffer())
+  if (elName === 0) {
+    fs.writeFileSync(path.join(__dirname, `/111/${name}`), canvas.toBuffer())
+  }
   return res
 }
 
