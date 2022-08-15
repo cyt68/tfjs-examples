@@ -118,7 +118,7 @@ function emptyDir(path) {
 }
 
 async function loadPngs(url) {
-  emptyDir(path.join(__dirname, `/111`))
+  url.includes('train') && emptyDir(path.join(__dirname, `/111`))
   const images = [];
   const sizes = [];
   const labels = [];
@@ -138,7 +138,10 @@ async function loadPngs(url) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
         const imageData = ctx.getImageData(0, 0, img.width, img.height);
-        // fs.writeFileSync(path.join(__dirname, `/111/${name}.png`), canvas.toBuffer())
+        if (name.includes('1328') || name.includes('2585')) {
+          const data = canvas.toBuffer()
+          fs.writeFileSync(path.join(__dirname, `/111/1-${name}`), data)
+        }
         const datasetBytesBuffer = new ArrayBuffer(img.width * img.height * 4);
         const datasetBytesView = new Float32Array(datasetBytesBuffer);
         for (let j = 0; j < imageData.data.length / 4; j++) {
@@ -147,6 +150,9 @@ async function loadPngs(url) {
           datasetBytesView[j] = imageData.data[j * 4] / 255;
         }
         const data = resizePng(new Float32Array(datasetBytesBuffer), img, name, parseInt(el.name))
+        if (name.includes('65998')) {
+          data
+        }
         images.push(data)
         sizes.push([img.height, img.width])
 
@@ -163,16 +169,17 @@ function fillPicture(dataBuffer, img) {
   const imgHeight = img.height;
   const imgWidth = img.width;
   if (imgHeight < IMAGE_HEIGHT) {
-    const addNum = imgWidth * (IMAGE_HEIGHT - imgHeight);
-    const halfAddNum = Math.ceil(addNum / 2)
+    const diffHeight = IMAGE_HEIGHT - imgHeight
+    const halfAddNum = imgWidth * Math.ceil(diffHeight / 2)
+    const LeftAddNum = imgWidth * (diffHeight - Math.ceil(diffHeight / 2))
     const imgData = new Float32Array(IMAGE_HEIGHT * imgWidth);
     for (let index = 0; index < halfAddNum; index++) {
       imgData[index] = 1
     }
-    for (let index = halfAddNum; index < IMAGE_HEIGHT * imgWidth + halfAddNum; index++) {
+    for (let index = halfAddNum; index < imgHeight * imgWidth + halfAddNum; index++) {
       imgData[index] = dataBuffer[index - halfAddNum]
     }
-    for (let index = IMAGE_HEIGHT * imgWidth + halfAddNum; index < IMAGE_HEIGHT * imgWidth + addNum; index++) {
+    for (let index = imgHeight * imgWidth + halfAddNum; index < imgHeight * imgWidth + halfAddNum + LeftAddNum; index++) {
       imgData[index] = 1
     }
     return {
@@ -208,7 +215,8 @@ function resizePng(dataBuffer, img, name, elName) {
   }
   ctx.putImageData(imageData, 0, 0);
   if (elName === 0) {
-    fs.writeFileSync(path.join(__dirname, `/111/${name}`), canvas.toBuffer())
+    const canvasData = canvas.toBuffer()
+    fs.writeFileSync(path.join(__dirname, `/111/${name}`), canvasData)
   }
   return res
 }
@@ -248,13 +256,15 @@ class MnistDataset {
 
   /** Loads training and test data. */
   async loadData() {
-    // this.dataset = await Promise.all([
+    // this.dataset1 = await Promise.all([
     //   loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE),
     //   loadImages(TEST_IMAGES_FILE), loadLabels(TEST_LABELS_FILE)
     // ]);
+    const trainData = await loadPngs(path.join(__dirname, `/img/train1`))
+    const testData = await loadPngs(path.join(__dirname, `/img/test1`))
     this.dataset = await Promise.all([
-      (await loadPngs(path.join(__dirname, `/img/train1`))).images, (await loadPngs(path.join(__dirname, `/img/train1`))).labels,
-      (await loadPngs(path.join(__dirname, `/img/test1`))).images, (await loadPngs(path.join(__dirname, `/img/test1`))).labels, (await loadPngs(path.join(__dirname, `/img/train1`))).sizes,
+      trainData.images, trainData.labels,
+      testData.images, testData.labels, trainData.sizes,
     ]);
     this.trainSize = this.dataset[0].length;
     this.testSize = this.dataset[2].length;
