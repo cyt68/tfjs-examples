@@ -10,3 +10,6 @@ yarn-error.log
 yalc.lock
 *firebase-debug.log
 **/.parcel-cache
+**/111
+**/data/test
+**/data/train
