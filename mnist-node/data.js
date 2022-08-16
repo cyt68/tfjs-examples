@@ -126,6 +126,9 @@ async function loadPngs(url) {
   for (let i = 0; i < files.length; i++) {
     const el = files[i];
     if (el.isDirectory() && notDSStore(el.name)) {
+      if (parseInt(el.name) > 10) {
+        break
+      }
       let files = fs.readdirSync(`${url}/${el.name}`);
       files = files.filter(el => notDSStore(el))
       files.sort((a, b) => {
@@ -138,10 +141,10 @@ async function loadPngs(url) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
         const imageData = ctx.getImageData(0, 0, img.width, img.height);
-        if (name.includes('1328') || name.includes('2585')) {
-          const data = canvas.toBuffer()
-          fs.writeFileSync(path.join(__dirname, `/111/1-${name}`), data)
-        }
+        // if (name.includes('1328') || name.includes('2585')) {
+        //   const data = canvas.toBuffer()
+        //   fs.writeFileSync(path.join(__dirname, `/111/1-${name}`), data)
+        // }
         const datasetBytesBuffer = new ArrayBuffer(img.width * img.height * 4);
         const datasetBytesView = new Float32Array(datasetBytesBuffer);
         for (let j = 0; j < imageData.data.length / 4; j++) {
@@ -227,10 +230,8 @@ function resizePng(dataBuffer, img, name, elName) {
     imageData.data[j + 3] = 255;
   }
   ctx.putImageData(imageData, 0, 0);
-  if (elName === 0) {
-    const canvasData = canvas.toBuffer()
-    fs.writeFileSync(path.join(__dirname, `/111/${name}`), canvasData)
-  }
+  const canvasData = canvas.toBuffer()
+  fs.writeFileSync(path.join(__dirname, `/111/${name}`), canvasData)
   return res
 }
 
@@ -269,12 +270,12 @@ class MnistDataset {
 
   /** Loads training and test data. */
   async loadData() {
-    // this.dataset1 = await Promise.all([
+    // this.dataset = await Promise.all([
     //   loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE),
     //   loadImages(TEST_IMAGES_FILE), loadLabels(TEST_LABELS_FILE)
     // ]);
-    const trainData = await loadPngs(path.join(__dirname, `/img/train1`))
-    const testData = await loadPngs(path.join(__dirname, `/img/test1`))
+    const trainData = await loadPngs(path.join(__dirname, `/data/train`))
+    const testData = await loadPngs(path.join(__dirname, `/data/test`))
     this.dataset = await Promise.all([
       trainData.images, trainData.labels,
       testData.images, testData.labels, trainData.sizes,

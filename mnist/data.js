@@ -173,8 +173,8 @@ export class MnistData {
           img, 0, 0, img.width, img.height, 0, 0, img.width,
           img.height);
 
-        const div = document.getElementById('png');
-        div.appendChild(canvas);
+        // const div = document.getElementById('png');
+        // div.appendChild(canvas);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -195,8 +195,8 @@ export class MnistData {
         const canvas1 = document.createElement('canvas');
         const ctx1 = canvas1.getContext('2d');
         ctx1.putImageData(imageData, 0, 0);
-        const div1 = document.getElementById('png-test');
-        div1.appendChild(canvas1);
+        // const div1 = document.getElementById('png-test');
+        // div1.appendChild(canvas1);
         resolve();
       };
       img.src = 'http://localhost:8081/img/65998.png';
