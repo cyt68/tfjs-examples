@@ -21,6 +21,7 @@ import * as tf from '@tensorflow/tfjs';
 // It is a useful example of how you could create your own data manager class
 // for arbitrary data though. It's worth a look :)
 import { IMAGE_H, IMAGE_W, MnistData } from './data';
+import char_set from './char_set.json';
 
 // This is a helper class for drawing loss graphs and MNIST images to the
 // window. For the purposes of understanding the machine learning bits, you can
@@ -306,5 +307,40 @@ ui.setTestCallback(async () => {
     const predictions = Array.from(output.argMax(axis).dataSync());
 
     ui.showTestResults(examples, predictions, labels);
+  });
+});
+
+ui.setCheckCallback(async () => {
+  ui.logStatus('Loading test data...');
+  await load(true);
+
+  ui.logStatus('Loading model...');
+  const model = await tf.loadLayersModel('http://localhost:8081/trainedModel/model.json');
+
+  ui.logStatus('Starting model training...');
+  tf.tidy(() => {
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const datasetBytesBuffer =
+      new ArrayBuffer(canvas.width * canvas.height * 4);
+    const datasetBytesView = new Float32Array(
+      datasetBytesBuffer);
+    for (let j = 0; j < imageData.data.length / 4; j++) {
+      // All channels hold an equal value since the image is grayscale, so
+      // just read the red channel.
+      datasetBytesView[j] = imageData.data[j * 4] / 255;
+    }
+    const a1 = new Float32Array(datasetBytesBuffer)
+    const xs = tf.tensor4d(a1, [
+      1, canvas.height, canvas.width, 1
+    ]);
+    const examples = {
+      xs
+    };
+    const output = model.predict(examples.xs);
+    const axis = 1;
+    const predictions = Array.from(output.argMax(axis).dataSync());
+    alert('图片中的文字是：' + char_set[predictions[0]])
   });
 });

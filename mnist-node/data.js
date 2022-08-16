@@ -162,6 +162,19 @@ async function loadPngs(url) {
       }
     }
   }
+  // const disorderObj = {
+  //   images: [],
+  //   labels: [],
+  //   sizes: []
+  // }
+  // const disorderArr = Array(images.length).fill().map((_, i) => i).sort(() => (Math.random() - 0.5))
+  // for (let index = 0; index < disorderArr.length; index++) {
+  //   const num = disorderArr[index];
+  //   disorderObj.images[index] = images[num]
+  //   disorderObj.labels[index] = labels[num]
+  //   disorderObj.sizes[index] = sizes[num]
+  // }
+  // return disorderObj
   return { images, labels, sizes }
 }
 

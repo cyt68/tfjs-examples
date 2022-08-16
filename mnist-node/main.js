@@ -60,12 +60,12 @@ const parser = new argparse.ArgumentParser({
 });
 parser.addArgument('--epochs', {
   type: 'int',
-  defaultValue: 1,
+  defaultValue: 10,
   help: 'Number of epochs to train the model for.'
 });
 parser.addArgument('--batch_size', {
   type: 'int',
-  defaultValue: 128,
+  defaultValue: 5,
   help: 'Batch size to be used during model training.'
 })
 parser.addArgument('--model_save_path', {
