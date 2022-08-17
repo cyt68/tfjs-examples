@@ -374,14 +374,14 @@ function init() {
   // 阻止 dragover(拖到DOM元素上方) 事件传递
   target.addEventListener("dragover", function (e) { e.preventDefault(); }, true);
   // 拖动并放开鼠标的事件
-  target.addEventListener("drop", function (e) {
+  target.addEventListener("drop", async function (e) {
     // 阻止默认事件，以及事件传播
     e.preventDefault();
     // 调用前面的加载图像 函数，参数为dataTransfer对象的第一个文件
     const checkMsg = document.getElementById('checkMsg');
     const allCanvas = document.getElementById('allCanvas')
     allCanvas.innerHTML = ''
-    checkMsg.innerText = '图片中的文字是：';
+    checkMsg.innerHTML = '识别中...';
     const total = e.dataTransfer.files.length;
     window.arr = []
     for (let index = 0; index < total; index++) {
@@ -424,11 +424,33 @@ async function check(index, total) {
     const predictions = Array.from(output.argMax(axis).dataSync());
     window.arr[index] = char_set[predictions[0]]
     if (index === total - 1) {
-      const checkMsg = document.getElementById('checkMsg');
-      checkMsg.innerText += window.arr.join('，');
+      showMsg()
     }
   });
 };
+
+async function showMsg() {
+  const checkMsg = document.getElementById('checkMsg');
+  checkMsg.innerHTML = ''
+  for (let index = 0; index < window.arr.length; index++) {
+    const msg = window.arr[index];
+    const div = document.createElement('div');
+    div.style.width = 28;
+    div.style.display = 'inline-block';
+    div.style.textAlign = 'center';
+    div.innerText = msg;
+    checkMsg.appendChild(div);
+    await nap(index * 10)
+  }
+}
+
+function nap(num) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve()
+    }, num)
+  })
+}
 
 window.onload = () => {
   init()
